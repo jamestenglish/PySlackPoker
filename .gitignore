@@ -58,3 +58,4 @@ docs/_build/
 target/
 
 .idea/
+python-rtmbot/plugins/pokerbot/rtmbot.conf
