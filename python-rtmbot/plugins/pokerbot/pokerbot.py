@@ -22,7 +22,7 @@ def tick():
 
 def process_message(data):
     print data
-    if data['type'] == 'message':
+    if data['type'] == 'message' and 'text' in data:
         channel = data['channel']
 
         text = data['text']
@@ -54,7 +54,7 @@ class Game:
 
     def process(self, data):
         if 'START' == self.state:
-            if data['text'].lower() == 'yes':
+            if 'text' in data and data['text'].lower() == 'yes':
                 self.players.append(Player(data['user']))
                 self.message(join_message.format(data['user']))
 
@@ -74,22 +74,32 @@ class Game:
         else:
             result = slack_client.api_call('chat.postMessage',
                                            text=text,
-                                           channel=self.channel)
+                                           channel=self.channel,
+                                           username='poker_bot',
+                                           as_user=True)
+
+
+        if not result:
+            return result
 
         result = json.loads(result)
-
+        print '------Result:'
         print str(result)
+        print str(result.keys())
+        print '----end'
 
         return result
 
     def tick(self):
         if 'START' == self.state:
-            if self.timer == 0:
+            self.timer -= 1
+            if self.timer < 0:
                 self.set_state('DEAL')
                 return
 
             self.last_message = self.message(start_message.format(self.timer),
                                              self.last_message)
+
 
 
 
