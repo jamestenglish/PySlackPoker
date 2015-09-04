@@ -1,7 +1,12 @@
 import yaml
 import json
 from slackclient import SlackClient
-from deuces import Deck
+
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+
+from deuces.deuces import Deck, Card
 
 bot_name = '<@U0A1420MD>'
 
@@ -15,6 +20,8 @@ slack_client = SlackClient(token)
 start_message = "Who wants to play? Respond with 'yes' in this channel in the next {} seconds. "
 join_message = "<@{}> has joined the game."
 
+
+WAIT = 10
 
 def tick():
     for channel in games:
@@ -43,14 +50,14 @@ class Game:
     def __init__(self, channel):
         self.channel = channel
         self.state = None
-        self.timer = 30
+        self.timer = WAIT
         self.last_message = None
         self.players = []
         self.deck = None
 
     def start(self):
         self.state = 'START'
-        self.timer = 30
+        self.timer = WAIT
         self.players = []
         self.deck = Deck()
 
@@ -64,12 +71,16 @@ class Game:
 
         if 'START' == self.state:
             if 'text' in data and data['text'].lower() == 'yes':
+                for player in self.players:
+                    if player.slack_id == data['user']:
+                        return
+
                 self.players.append(Player(data['user']))
                 self.message(join_message.format(data['user']))
 
     def set_state(self, state):
         self.state = state
-        self.timer = 30
+        self.timer = WAIT
         self.last_message = None
 
     def message(self, text, last_message=None):
@@ -108,15 +119,21 @@ class Game:
                                          self.last_message)
 
     def deal_state(self):
-        if len(self.players) < 2:
-            self.message("Not enough players to start.")
-            self.set_state('DEAD')
-            return
+        print 'deal_state====='
+        print repr(self.players)
+        print 'end'
+        #if len(self.players) < 2:
+        #    self.message("Not enough players.")
+            #self.set_state('DEAD')
+            #return
 
         for player in self.players:
+            print '2a'
+            print str(self.deck.draw(2))
+            print '2b'
             player.deal(self.deck.draw(2))
             
-
+        self.set_state('PREFLOP_BET')
 
     def tick(self):
         if 'START' == self.state:
@@ -126,7 +143,11 @@ class Game:
             self.deal_state()
 
 
-
+def get_im_channel(user):
+    ims = json.loads(slack_client.api_call('im.list'))['ims']
+    for im in ims:
+        if im['user'] == user:
+            return im['id']
 
 
 
@@ -139,9 +160,10 @@ class Player:
 
     def deal(self, cards):
         self.cards = cards
-        slack_client.api_call('chat.postMessage',
-                              text=str(self.cards),
-                              channel=self.slack_id,
+        card_str = '[{}, {}]'.format(Card.int_to_pretty_str(cards[0]), Card.int_to_pretty_str(cards[1]))
+        result = slack_client.api_call('chat.postMessage',
+                              text=card_str,
+                              channel=get_im_channel(self.slack_id),
                               username='poker_bot',
                               as_user=True)
-
+        print str(result)
