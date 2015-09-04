@@ -25,7 +25,7 @@ def process_message(data):
         channel = data['channel']
 
         text = data['text']
-        deal_text = '{}: deal'.format(bot_name) 
+        deal_text = '{}: deal'.format(bot_name)
         
         if deal_text.lower() in text.lower():
             print 'a'
