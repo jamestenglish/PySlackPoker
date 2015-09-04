@@ -1,9 +1,9 @@
 import yaml
 from slackclient import SlackClient
 
-bot_name = '<>'
+bot_name = '<@U0A1420MD>'
 
-config = yaml.load(file('../../../../rtmbot.conf', 'r'))
+config = yaml.load(file('rtmbot.conf', 'r'))
 token = config["SLACK_TOKEN"]
 
 outputs = []
