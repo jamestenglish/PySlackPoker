@@ -25,8 +25,10 @@ def process_message(data):
         channel = data['channel']
 
         text = data['text']
-
-        if '{}: deal'.format(bot_name) in text.lower:
+        deal_text = '{}: deal'.format(bot_name) 
+        
+        if deal_text.lower() in text.lower():
+            print 'a'
             if channel not in games:
                 games[channel] = Game(channel)
                 games[channel].start()
