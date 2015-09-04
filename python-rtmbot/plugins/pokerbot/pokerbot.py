@@ -3,7 +3,7 @@ from slackclient import SlackClient
 
 bot_name = '<>'
 
-config = yaml.load(file('../../../../rtmbot.conf', 'r'))
+config = yaml.load(file('../../../rtmbot.conf', 'r'))
 token = config["SLACK_TOKEN"]
 
 outputs = []
