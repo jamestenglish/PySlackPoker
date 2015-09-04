@@ -1,4 +1,5 @@
 import yaml
+import json
 from slackclient import SlackClient
 
 bot_name = '<@U0A1420MD>'
@@ -74,6 +75,8 @@ class Game:
             result = slack_client.api_call('chat.postMessage',
                                            text=text,
                                            channel=self.channel)
+
+        result = json.loads(result)
 
         print str(result)
 
