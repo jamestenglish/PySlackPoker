@@ -45,6 +45,19 @@ def process_message(data):
             games[channel].process(data)
 
 
+class PotManager:
+    def __init__(self, game):
+        self.game = game
+        self.pots = []
+
+    def post_small_blind(self, player):
+        pass
+
+    def post_big_blind(self, player):
+        pass
+
+
+
 
 class Game:
     def __init__(self, channel):
@@ -52,14 +65,20 @@ class Game:
         self.state = None
         self.timer = WAIT
         self.last_message = None
-        self.players = []
+        self.players = None
         self.deck = None
+        self.current_player = 0
+        self.pot = 0
+        self.pot_manager = None
 
     def start(self):
         self.state = 'START'
         self.timer = WAIT
         self.players = []
         self.deck = Deck()
+        self.current_player = 0
+        self.pot = 0
+        self.pot_manager = PotManager(self)
 
     def process(self, data):
         if 'DEAD' == self.state:
@@ -75,7 +94,9 @@ class Game:
                     if player.slack_id == data['user']:
                         return
 
-                self.players.append(Player(data['user']))
+                player = Player(data['user'])
+                self.pot_manager.players.append(player)
+                self.players.append(player)
                 self.message(join_message.format(data['user']))
 
     def set_state(self, state):
@@ -119,21 +140,47 @@ class Game:
                                          self.last_message)
 
     def deal_state(self):
-        print 'deal_state====='
-        print repr(self.players)
-        print 'end'
-        #if len(self.players) < 2:
-        #    self.message("Not enough players.")
-            #self.set_state('DEAD')
-            #return
+        self.current_player = 0
+        self.pot = 0
+
+        if len(self.players) < 2:
+            self.message("Not enough players.")
+            self.set_state('DEAD')
+            return
 
         for player in self.players:
-            print '2a'
-            print str(self.deck.draw(2))
-            print '2b'
             player.deal(self.deck.draw(2))
             
-        self.set_state('PREFLOP_BET')
+        self.set_state('BLIND')
+
+    def blind_state(self):
+        self.message('<@{}> posts small blind $1'.format(self.players[0].slack_id))
+        self.current_player += 1
+        self.message('<@{}> posts big blind $2'.format(self.players[1].slack_id))
+        self.current_player += 1
+        #todo remove player money, check if player can post
+        self.pot = 3
+
+        self.display_board()
+
+    def display_board(self):
+        board_str = '```'
+        for i, player in enumerate(self.players):
+            if i == self.current_player % len(self.players):
+                board_str += '->'
+            else:
+                board_str += '  '
+
+            board_str += '<@{}>\t${}\t{}\t{} {}\n'.format(player.slack_id,
+                                                          player.money,
+                                                          player.state,
+                                                          player.action,
+                                                          player.bet)
+        board_str += '```\n'
+        board_str += self.pot_manager.display_pot()
+
+        self.message(board_str)
+
 
     def tick(self):
         if 'START' == self.state:
@@ -141,6 +188,9 @@ class Game:
 
         if 'DEAL' == self.state:
             self.deal_state()
+
+        if 'BLIND' == self.state:
+            self.blind_state()
 
 
 def get_im_channel(user):
@@ -157,9 +207,13 @@ class Player:
         self.slack_id = slack_id
         self.money = 200
         self.cards = []
+        self.state = 'IN'
+        self.action = ''
+        self.bet = ''
 
     def deal(self, cards):
         self.cards = cards
+        self.state = 'IN'
         card_str = '[{}, {}]'.format(Card.int_to_pretty_str(cards[0]), Card.int_to_pretty_str(cards[1]))
         result = slack_client.api_call('chat.postMessage',
                               text=card_str,
