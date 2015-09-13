@@ -3,36 +3,35 @@ import json
 from deuces.deuces import Deck
 
 from pot_manager import PotManager
-from player import Player
+from join_manager import JoinManager
+from chat import Chat
 
 WAIT = 10
 bot_name = '<@U0A1420MD>'
-start_message = "Who wants to play? Respond with 'yes' in this channel in the next {} seconds. "
-join_message = "<@{}> has joined the game."
 
 
 class Game:
     def __init__(self, slack_client):
-        self.channel = None
         self.state = 'DEAD'
         self.timer = WAIT
-        self.last_message = None
+
         self.players = []
         self.deck = None
         self.current_player = 0
         self.pot_manager = None
         self.slack_client = slack_client
+        self.join_manager = None
+        self.chat = None
 
     def start(self, channel):
         self.state = 'START'
-        self.channel = channel
         self.timer = WAIT
         self.players = []
         self.deck = Deck()
         self.current_player = 0
         self.pot_manager = PotManager(self)
-        self.last_message = self.message(start_message.format(self.timer),
-                                         self.last_message)
+        self.join_manager = JoinManager(self)
+        self.chat = Chat(self.slack_client, channel)
 
     def process(self, data):
         if 'DEAD' == self.state:
@@ -49,46 +48,16 @@ class Game:
             self.start(data['channel'])
 
     def process_start(self, data):
-        if 'text' in data and data['text'].lower() == 'yes':
-            player = Player(data['user'], self.slack_client)
-            if player not in self.players:
-                self.players.append(player)
-                self.message(join_message.format(data['user']))
+        self.join_manager.process_message(data)
 
     def set_state(self, state):
         self.state = state
         self.timer = WAIT
-        self.last_message = None
-
-    def message(self, text, last_message=None):
-
-        result = None
-        if last_message:
-            result = self.slack_client.api_call('chat.update',
-                                                text=text,
-                                                channel=self.channel,
-                                                ts=self.last_message['ts'])
-        else:
-            result = self.slack_client.api_call('chat.postMessage',
-                                                text=text,
-                                                channel=self.channel,
-                                                username='poker_bot',
-                                                as_user=True)
-
-        if not result:
-            return result
-
-        result = json.loads(result)
-        print '------Result:'
-        print str(result)
-        print str(result.keys())
-        print '----end'
-
-        return result
+        self.chat.reset()
 
     def enough_players(self):
         if len(self.players) < 2:
-            self.message("Not enough players.")
+            self.chat.message("Not enough players.")
             self.set_state('DEAD')
             return False
         return True
@@ -140,7 +109,7 @@ class Game:
         board_str += '```\n'
         board_str += self.pot_manager.display_pot()
 
-        self.message(board_str)
+        self.chat.message(board_str)
 
     def count_down(self, new_state):
         self.timer -= 1
@@ -150,6 +119,7 @@ class Game:
 
     def tick(self):
         if 'START' == self.state:
+            self.join_manager.tick(self.timer)
             self.count_down('DEAL')
 
         if 'DEAL' == self.state:

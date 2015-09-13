@@ -13,7 +13,7 @@ class PotManager:
         pot = Pot(player, 1)
         player.money -= 1
         player.bet = 1
-        player.action = "small blind"
+        player.action = "SMALL BLIND"
 
         self.pots.append(pot)
         self.game.message('<@{}> posts small blind $1'.format(player.slack_id))
@@ -26,12 +26,17 @@ class PotManager:
 
         self.game.message('<@{}> posts big blind $2'.format(player.slack_id))
         self.pots[0].players.append(player)
-        self.pots[0].amount += 2
-        player.money -= 2
+        PotManager.place_bet(2, player, self.pots[0])
         player.bet = 2
-        player.action = "big blind"
+        player.action = "BIG BLIND"
 
         return True
+
+    @staticmethod
+    def place_bet(amount, player, pot):
+        pot.amount += amount
+        player.money -= amount
+
 
     def display_pot(self):
         main_pot = True
