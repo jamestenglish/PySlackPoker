@@ -22,6 +22,7 @@ class Game:
         self.slack_client = slack_client
         self.join_manager = None
         self.chat = None
+        self.dealer_id = 0
 
     def start(self, channel):
         self.state = 'START'
@@ -91,7 +92,10 @@ class Game:
         if not self.post_blind(self.pot_manager.post_big_blind):
             return
 
+        self.dealer_id = self.current_player
+
         self.display_board()
+        self.set_state("BET1")
 
     def display_board(self):
         board_str = '```'
@@ -127,3 +131,6 @@ class Game:
 
         if 'BLIND' == self.state:
             self.blind_state()
+
+        if 'BET1' == self.state:
+            pass

@@ -1,5 +1,10 @@
 import json
 from deuces.deuces import Card
+from chat import Chat
+
+IN_STATE = "IN"
+FOLD_STATE = "FOLD"
+ALL_IN_STATE = "ALL IN"
 
 
 class Player:
@@ -7,15 +12,17 @@ class Player:
         self.slack_id = slack_id
         self.money = 200
         self.cards = []
-        self.state = 'IN'
+        self.state = IN_STATE
         self.action = ''
         self.bet = 0
         self.slack_client = slack_client
+        self.chat = Chat(slack_client, Player.get_im_channel(self.slack_client, self.slack_id))
 
-    def get_im_channel(self):
-        ims = json.loads(self.slack_client.api_call('im.list'))['ims']
+    @staticmethod
+    def get_im_channel(slack_client, slack_id):
+        ims = json.loads(slack_client.api_call('im.list'))['ims']
         for im in ims:
-            if im['user'] == self.slack_id:
+            if im['user'] == slack_id:
                 return im['id']
 
     def get_username(self):
@@ -25,17 +32,9 @@ class Player:
     def deal(self, cards):
         self.bet = 0
         self.cards = cards
-        self.state = 'IN'
+        self.state = IN_STATE
         card_str = '[{}, {}]'.format(Card.int_to_pretty_str(cards[0]), Card.int_to_pretty_str(cards[1]))
-        result = self.slack_client.api_call('chat.postMessage',
-                                            text=card_str,
-                                            channel=self.get_im_channel(),
-                                            username='poker_bot',
-                                            as_user=True)
-        print str(result)
-
-    def message(self, message, last_message):
-        pass
+        self.chat.message(card_str)
 
     def __hash__(self):
         return self.slack_id.__hash__()
