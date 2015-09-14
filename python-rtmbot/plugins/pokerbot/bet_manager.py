@@ -6,6 +6,8 @@ CHECK_MESSAGE = "It's your turn. Respond with\n*(C)heck    (B)et    (F)old*\nin 
 ALL_IN_MESSAGE = "It's your turn. Respond with\n*(A)ll in    (F)old*\nin the next {} seconds."
 TIMEOUT_MESSAGE = "You have run out of time. You have automatically folded."
 
+NEED_AMOUNT = "You need to specify a proper amount."
+NOT_ENOUGH_MONEY = "You do not have enough money to do that."
 
 
 class BetManager:
@@ -74,6 +76,19 @@ class BetManager:
                 self.last_message = self.player.chat.message(CALL_MESSAGE.format(self.timer), self.last_message)
             return
 
+    @staticmethod
+    def is_num(number_string):
+        try:
+            int(number_string)
+        except ValueError:
+            return False
+
+        return True
+
+    def process_all_in(self):
+        self.pot_manager.all_in(self.player)
+        self.next_player()
+
     def process(self, data):
         if self.player != self.game.players[self.player_id % len(self.game.players)]:
             return
@@ -83,18 +98,80 @@ class BetManager:
 
         if data['text'].lower() == 'f':
             self.pot_manager.fold(self.player)
+            self.next_player()
+            return
 
         if self.bet_type == ALL_IN_MESSAGE:
             if data['text'].lower() == 'a':
-                self.pot_manager.all_in(self.player)
+                self.process_all_in()
+                return
 
         if self.bet_type == CHECK_MESSAGE:
             if data['text'].lower() == 'c':
                 self.pot_manager.check(self.player)
                 self.next_player()
+                return
 
             if data['text'].lower().starts_with('b'):
-                #TODO remove b, test if number, check it player has enough money, place bet
+                bet_amount = data['text'].lower().replace('b', '')
+
+                if bet_amount is '' or not BetManager.is_num(bet_amount):
+                    return self.player.chat.message(NEED_AMOUNT)
+
+                bet_amount = int(bet_amount)
+
+                if bet_amount > self.player.money:
+                    return self.player.chat.message(NOT_ENOUGH_MONEY)
+
+                if bet_amount == self.player.money:
+                    self.process_all_in()
+                    return
+
+                self.pot_manager.bet(self.player, bet_amount)
+                self.next_player()
+                return
+
+        if self.bet_type == CALL_MESSAGE:
+            if data['text'].lower() == 'c':
+                difference = self.pot_manager.current_bet - self.player.bet
+
+                if difference > self.player.money:
+                    return self.player.chat.message(NOT_ENOUGH_MONEY)
+
+                if difference == self.player.money:
+                    self.process_all_in()
+                    return
+
+                self.pot_manager.call(self.player)
+                self.next_player()
+                return
+
+            if data['text'].lower().starts_with('r'):
+                raise_amount = data['text'].lower().replace('r', '')
+
+                if raise_amount is '' or not BetManager.is_num(raise_amount):
+                    return self.player.chat.message(NEED_AMOUNT)
+
+                raise_amount = int(raise_amount)
+
+                difference = self.pot_manager.current_bet - self.player.bet
+
+                total_amount = raise_amount + difference
+
+                if total_amount > self.player.money:
+                    return self.player.chat.message(NOT_ENOUGH_MONEY)
+
+                if total_amount == self.player.money:
+                    self.process_all_in()
+                    return
+
+                self.pot_manager.raise_bid(self.player, raise_amount)
+                self.next_player()
+                return
+
+
+
+
 
 
 

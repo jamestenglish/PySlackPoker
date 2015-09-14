@@ -6,6 +6,11 @@ IN_STATE = "IN"
 FOLD_STATE = "FOLD"
 ALL_IN_STATE = "ALL IN"
 
+CALL_ACTION = "CALL"
+RAISE_ACTION = "RAISE"
+CHECK_ACTION = "CHECK"
+BET_ACTION = "BET"
+
 
 class Player:
     def __init__(self, slack_id, slack_client):

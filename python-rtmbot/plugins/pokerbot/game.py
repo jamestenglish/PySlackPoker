@@ -1,10 +1,10 @@
-import json
-
+from functools import partial
 from deuces.deuces import Deck
 
 from pot_manager import PotManager
 from join_manager import JoinManager
 from chat import Chat
+from bet_manager import BetManager
 
 WAIT = 10
 bot_name = '<@U0A1420MD>'
@@ -23,6 +23,7 @@ class Game:
         self.join_manager = None
         self.chat = None
         self.dealer_id = 0
+        self.bet_manager = None
 
     def start(self, channel):
         self.state = 'START'
@@ -33,6 +34,7 @@ class Game:
         self.pot_manager = PotManager(self)
         self.join_manager = JoinManager(self)
         self.chat = Chat(self.slack_client, channel)
+        self.bet_manager = BetManager(self, self.pot_manager)
 
     def process(self, data):
         if 'DEAD' == self.state:
@@ -40,6 +42,9 @@ class Game:
 
         if 'START' == self.state:
             self.process_start(data)
+
+        if 'BET1' == self.state:
+            self.bet_manager.process(data)
 
     def process_dead(self, data):
         text = data['text']
@@ -79,7 +84,7 @@ class Game:
             player = self.players[0]
             can_post = blind_func(player)
             if not can_post:
-                self.players.remove(0)
+                self.players.pop(0)
                 if not self.enough_players():
                     return False
             self.current_player += 1
@@ -95,6 +100,7 @@ class Game:
         self.dealer_id = self.current_player
 
         self.display_board()
+        self.bet_manager.request_bets(self.dealer_id, partial(self.set_state, "FLOP"))
         self.set_state("BET1")
 
     def display_board(self):
@@ -133,4 +139,9 @@ class Game:
             self.blind_state()
 
         if 'BET1' == self.state:
+            self.bet_manager.tick()
+            #TODO what if everyone else folds?
+
+        if "FLOP" == self.state:
             pass
+            #TODO PROCESS FLOP
