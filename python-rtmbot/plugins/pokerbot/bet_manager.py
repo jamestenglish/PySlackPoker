@@ -1,5 +1,5 @@
 from game import WAIT
-from player import IN_STATE, FOLD_STATE, ALL_IN_STATE
+from player import Player
 
 CALL_MESSAGE = "It's your turn. Respond with\n*(C)all    (R)aise    (F)old*\nin the next {} seconds."
 CHECK_MESSAGE = "It's your turn. Respond with\n*(C)heck    (B)et    (F)old*\nin the next {} seconds."
@@ -15,7 +15,7 @@ class BetManager:
         self.game = game
         self.player_id = None
         self.dealer_id = None
-        self.callback_func = None
+        self.done_callback = None
         self.timer = WAIT
         self.last_message = None
         self.pot_manager = pot_manager
@@ -23,10 +23,12 @@ class BetManager:
         self.player = None
         self.bet_type = None
         self.allow_stop_bet = False
+        self.fold_callback = None
 
-    def request_bets(self, player_id, callback_func):
+    def request_bets(self, player_id, done_callback, fold_callback):
         self.player_id = self.dealer_id = player_id
-        self.callback_func = callback_func
+        self.done_callback = done_callback
+        self.fold_callback = fold_callback
         self.timer = WAIT
         self.last_message = None
         self.stop_player = self.get_player(self.dealer_id)
@@ -50,13 +52,13 @@ class BetManager:
 
     def tick(self):
         self.player = self.get_player(self.player_id)
-        if self.player.state != IN_STATE:
+        if self.player.state != Player.IN_STATE:
             self.next_player()
             return
 
         if self.player == self.stop_player:
             if not self.allow_stop_bet:
-                self.callback_func()
+                self.done_callback()
                 return
             else:
                 self.allow_stop_bet = False
@@ -93,24 +95,26 @@ class BetManager:
         if self.player != self.game.players[self.player_id % len(self.game.players)]:
             return
 
-        if self.player.state != IN_STATE:
+        if self.player.state != Player.IN_STATE:
             return
 
         if data['text'].lower() == 'f':
             self.pot_manager.fold(self.player)
-            self.next_player()
-            return
+            if self.pot_manager.is_all_folded():
+                return self.fold_callback()
+
+            return self.next_player()
 
         if self.bet_type == ALL_IN_MESSAGE:
             if data['text'].lower() == 'a':
-                self.process_all_in()
-                return
+                return self.process_all_in()
+
 
         if self.bet_type == CHECK_MESSAGE:
             if data['text'].lower() == 'c':
                 self.pot_manager.check(self.player)
-                self.next_player()
-                return
+                return self.next_player()
+
 
             if data['text'].lower().starts_with('b'):
                 bet_amount = data['text'].lower().replace('b', '')
@@ -124,12 +128,10 @@ class BetManager:
                     return self.player.chat.message(NOT_ENOUGH_MONEY)
 
                 if bet_amount == self.player.money:
-                    self.process_all_in()
-                    return
+                    return self.process_all_in()
 
                 self.pot_manager.bet(self.player, bet_amount)
-                self.next_player()
-                return
+                return self.next_player()
 
         if self.bet_type == CALL_MESSAGE:
             if data['text'].lower() == 'c':
@@ -139,12 +141,10 @@ class BetManager:
                     return self.player.chat.message(NOT_ENOUGH_MONEY)
 
                 if difference == self.player.money:
-                    self.process_all_in()
-                    return
+                    return self.process_all_in()
 
                 self.pot_manager.call(self.player)
-                self.next_player()
-                return
+                return self.next_player()
 
             if data['text'].lower().starts_with('r'):
                 raise_amount = data['text'].lower().replace('r', '')
@@ -162,12 +162,11 @@ class BetManager:
                     return self.player.chat.message(NOT_ENOUGH_MONEY)
 
                 if total_amount == self.player.money:
-                    self.process_all_in()
-                    return
+                    return self.process_all_in()
+
 
                 self.pot_manager.raise_bid(self.player, raise_amount)
-                self.next_player()
-                return
+                return self.next_player()
 
 
 

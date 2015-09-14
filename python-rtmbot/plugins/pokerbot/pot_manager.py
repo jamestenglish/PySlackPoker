@@ -1,5 +1,5 @@
 from pot import Pot
-from player import FOLD_STATE, ALL_IN_STATE, CALL_ACTION, CHECK_ACTION, RAISE_ACTION, BET_ACTION
+from player import Player
 
 FOLD_NOTIFY_MESSAGE = "{} folds."
 ALL_IN_NOTIFY_MESSAGE = "{} is all in."
@@ -18,7 +18,7 @@ class PotManager:
         if player.money < 1:
             return False
 
-        pot = Pot(player, 1)
+        pot = Pot('Main Pot', player, 1)
         player.money -= 1
         player.bet = 1
         player.action = "SMALL BLIND"
@@ -56,45 +56,47 @@ class PotManager:
                 return pot
 
     def fold(self, player):
-        player.state = FOLD_STATE
-        player.action = FOLD_STATE
+        player.state = Player.FOLD_STATE
+        player.action = Player.FOLD_STATE
         for pot in self.pots:
             pot.players.remove(player)
 
         self.game.chat.message(FOLD_NOTIFY_MESSAGE.format(player))
 
     def all_in(self, player):
-        player.state = ALL_IN_STATE
-        player.action = ALL_IN_STATE
+        player.state = Player.ALL_IN_STATE
+        player.action = Player.ALL_IN_STATE
         self.game.chat.message(ALL_IN_NOTIFY_MESSAGE.format(player))
 
         #TODO make side pot
 
     def call(self, player):
-        player.action = CALL_ACTION
+        player.action = Player.CALL_ACTION
 
     def raise_bid(self, player, amount):
-        player.action = "{} ${}".format(RAISE_ACTION, amount)
+        player.action = "{} ${}".format(Player.RAISE_ACTION, amount)
         difference = self.current_bet - player.bet
         total_amount = amount + difference
         self.current_bet += total_amount
         PotManager.place_bet(total_amount, player, self.get_player_pot(player))
 
     def check(self, player):
-        player.action = CHECK_ACTION
+        player.action = Player.CHECK_ACTION
         self.game.chat.message(CHECK_NOTIFY_MESSAGE.format(player))
 
     def bet(self, player, amount):
-        player.action = "{} ${}".format(BET_ACTION, amount)
+        player.action = "{} ${}".format(Player.BET_ACTION, amount)
         self.current_bet += amount
         PotManager.place_bet(amount, player, self.get_player_pot(player))
         self.game.chat.message(BET_NOTIFY_MESSAGE.format(player, amount))
 
-    def display_pot(self):
-        main_pot = True
+    def is_all_folded(self):
         for pot in self.pots:
-            if main_pot:
-                self.game.message('Main Pot: ${}'.format(pot.amount))
-                main_pot = False
-            else:
-                self.game.message('Side Pot: ${} | Players {}'.format(pot.amount, pot.players))
+            if len(pot.players) > 1:
+                return False
+
+        return True
+
+    def display_pot(self):
+        for pot in self.pots:
+            self.game.message('{}: ${}'.format(pot.name, pot.amount))

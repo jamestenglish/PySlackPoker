@@ -2,22 +2,22 @@ import json
 from deuces.deuces import Card
 from chat import Chat
 
-IN_STATE = "IN"
-FOLD_STATE = "FOLD"
-ALL_IN_STATE = "ALL IN"
-
-CALL_ACTION = "CALL"
-RAISE_ACTION = "RAISE"
-CHECK_ACTION = "CHECK"
-BET_ACTION = "BET"
-
 
 class Player:
+    IN_STATE = "IN"
+    FOLD_STATE = "FOLD"
+    ALL_IN_STATE = "ALL IN"
+
+    CALL_ACTION = "CALL"
+    RAISE_ACTION = "RAISE"
+    CHECK_ACTION = "CHECK"
+    BET_ACTION = "BET"
+
     def __init__(self, slack_id, slack_client):
         self.slack_id = slack_id
         self.money = 200
         self.cards = []
-        self.state = IN_STATE
+        self.state = Player.IN_STATE
         self.action = ''
         self.bet = 0
         self.slack_client = slack_client
@@ -34,12 +34,14 @@ class Player:
         user_api = json.loads(self.slack_client.api_call('users.info', user=self.slack_id))['user']
         return user_api['name']
 
+    def card_str(self):
+        return '[{}, {}]'.format(Card.int_to_pretty_str(self.cards[0]), Card.int_to_pretty_str(self.cards[1]))
+
     def deal(self, cards):
         self.bet = 0
         self.cards = cards
-        self.state = IN_STATE
-        card_str = '[{}, {}]'.format(Card.int_to_pretty_str(cards[0]), Card.int_to_pretty_str(cards[1]))
-        self.chat.message(card_str)
+        self.state = Player.IN_STATE
+        self.chat.message(self.card_str())
 
     def __hash__(self):
         return self.slack_id.__hash__()
