@@ -54,7 +54,7 @@ class Player:
         return self.slack_id.__hash__()
 
     def __eq__(self, other):
-        return self.slack_id == other.slack_id
+        return self.__hash__() == other.__hash__()
 
     def __str__(self):
         return self.get_username()
