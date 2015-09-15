@@ -131,7 +131,7 @@ class Game:
 
     def post_blind(self, blind_func):
         while True:
-            player = self.players[0]
+            player = self.players[self.current_player % len(self.players)]
             can_post = blind_func(player)
             if not can_post:
                 self.players.pop(0)
