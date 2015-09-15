@@ -149,6 +149,9 @@ class PotManager:
 
         return True
 
-    def display_pot(self):
+    def get_pot_string(self):
+        result = ""
         for pot in self.pots:
-            self.chat.message('{}: ${}'.format(pot.name, pot.amount))
+            result += '{}: ${}\n'.format(pot.name, pot.amount)
+
+        return result

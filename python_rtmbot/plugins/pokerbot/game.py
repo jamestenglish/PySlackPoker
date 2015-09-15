@@ -169,7 +169,7 @@ class Game:
                                                           player.action,
                                                           player.bet)
         board_str += '```\n'
-        board_str += self.pot_manager.display_pot()
+        board_str += self.pot_manager.get_pot_string()
 
         self.chat.message(board_str)
 
