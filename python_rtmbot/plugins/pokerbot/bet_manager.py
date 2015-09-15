@@ -120,7 +120,7 @@ class BetManager:
                 return self.next_player()
 
 
-            if data['text'].lower().starts_with('b'):
+            if data['text'].lower().startswith('b'):
                 bet_amount = data['text'].lower().replace('b', '')
 
                 if bet_amount is '' or not BetManager.is_num(bet_amount):
@@ -150,7 +150,7 @@ class BetManager:
                 self.pot_manager.call(self.player)
                 return self.next_player()
 
-            if data['text'].lower().starts_with('r'):
+            if data['text'].lower().startswith('r'):
                 raise_amount = data['text'].lower().replace('r', '')
 
                 if raise_amount is '' or not BetManager.is_num(raise_amount):

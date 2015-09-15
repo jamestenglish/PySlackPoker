@@ -1,9 +1,9 @@
 from functools import partial
 
 try:
-    from deuces.deuces import Deck, Evaluator
+    from deuces.deuces import Deck, Evaluator, Card
 except ImportError:
-    from python_rtmbot.deuces.deuces import Deck, Evaluator
+    from python_rtmbot.deuces.deuces import Deck, Evaluator, Card
 
 
 from pot_manager import PotManager
@@ -163,22 +163,30 @@ class Game:
             else:
                 board_str += '  '
 
-            board_str += '<@{}>\t${}\t{}\t{} {}\n'.format(player.slack_id,
-                                                          player.money,
-                                                          player.state,
-                                                          player.action,
-                                                          player.bet)
+            board_str += '<@{}>\t\t\t${}\t{}\t{} {}\n'.format(player.slack_id,
+                                                              player.money,
+                                                              player.state,
+                                                              player.action,
+                                                              player.bet)
         board_str += '```\n'
         board_str += self.pot_manager.get_pot_string()
 
         self.chat.message(board_str)
+
+    @staticmethod
+    def board_to_string(board):
+        result = ""
+        for card in board:
+            result += "{} ".format(Card.int_to_pretty_str(card))
+
+        return result
 
     def flop_state(self):
         # burn card
         self.deck.draw(1)
 
         self.board.extend(self.deck.draw(3))
-        self.chat.message("*Dealing the flop:*\n{}".format(self.board))
+        self.chat.message("*Dealing the flop:*\n{}".format(Game.board_to_string(self.board)))
         turn_callback = partial(self.set_state, TURN_STATE)
         fold_win_callback = partial(self.set_state, FOLD_WIN_STATE)
         self.bet_manager.request_bets(0, turn_callback, fold_win_callback)
@@ -189,7 +197,7 @@ class Game:
         self.deck.draw(1)
 
         self.board.extend(self.deck.draw(1))
-        self.chat.message("*Dealing the turn:*\n{}".format(self.board))
+        self.chat.message("*Dealing the turn:*\n{}".format(Game.board_to_string(self.board)))
         turn_callback = partial(self.set_state, RIVER_STATE)
         fold_win_callback = partial(self.set_state, FOLD_WIN_STATE)
         self.bet_manager.request_bets(0, turn_callback, fold_win_callback)
@@ -200,7 +208,7 @@ class Game:
         self.deck.draw(1)
 
         self.board.extend(self.deck.draw(1))
-        self.chat.message("*Dealing the river:*\n{}".format(self.board))
+        self.chat.message("*Dealing the river:*\n{}".format(Game.board_to_string(self.board)))
         self.set_state(SHOW_HANDS_STATE)
 
     def count_down(self, new_state):
