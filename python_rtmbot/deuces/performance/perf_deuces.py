@@ -1,5 +1,5 @@
 import time
-from python_rtmbot.deuces.deuces import Deck, Evaluator
+from deuces import Deck, Evaluator
 
 def setup(n, m):
 

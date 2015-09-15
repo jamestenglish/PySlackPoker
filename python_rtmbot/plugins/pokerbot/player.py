@@ -1,5 +1,9 @@
 import json
-from python_rtmbot.deuces.deuces import Card
+try:
+    from deuces.deuces import Card
+except ImportError:
+    from python_rtmbot.deuces.deuces import Card
+
 from chat import Chat
 
 

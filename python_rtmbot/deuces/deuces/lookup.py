@@ -1,5 +1,5 @@
 import itertools
-from python_rtmbot.deuces.deuces.card import Card
+from card import Card
 
 class LookupTable(object):
     """

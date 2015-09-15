@@ -1,5 +1,10 @@
 from functools import partial
-from python_rtmbot.deuces.deuces import Deck, Evaluator
+
+try:
+    from deuces.deuces import Deck, Evaluator
+except ImportError:
+    from python_rtmbot.deuces.deuces import Deck, Evaluator
+
 
 from pot_manager import PotManager
 from join_manager import JoinManager

@@ -1,6 +1,6 @@
 import itertools
-from python_rtmbot.deuces.deuces.card import Card
-from python_rtmbot.deuces.deuces.lookup import LookupTable
+from card import Card
+from lookup import LookupTable
 
 class Evaluator(object):
     """

@@ -1,5 +1,5 @@
 from random import shuffle
-from python_rtmbot.deuces.deuces.card import Card
+from card import Card
 
 class Deck:
     """
