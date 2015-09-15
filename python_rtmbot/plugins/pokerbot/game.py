@@ -157,7 +157,7 @@ class Game:
         self.display_board()
         flop_callback = partial(self.set_state, FLOP_STATE)
         fold_win_callback = partial(self.set_state, FOLD_WIN_STATE)
-        self.bet_manager.request_bets(self.dealer_id, flop_callback, fold_win_callback)
+        self.bet_manager.request_bets(self.dealer_id, flop_callback, fold_win_callback, self.display_board)
         self.set_state(BET_STATE)
 
     def display_board(self):
@@ -206,7 +206,7 @@ class Game:
         self.chat.message("*Dealing the turn:*\n{}".format(Game.board_to_string(self.board)))
         turn_callback = partial(self.set_state, RIVER_STATE)
         fold_win_callback = partial(self.set_state, FOLD_WIN_STATE)
-        self.bet_manager.request_bets(0, turn_callback, fold_win_callback)
+        self.bet_manager.request_bets(0, turn_callback, fold_win_callback, self.display_board)
         self.set_state(BET_STATE)
 
     def river_state(self):
