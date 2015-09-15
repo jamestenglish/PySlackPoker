@@ -6,17 +6,19 @@ join_message = "<@{}> has joined the game."
 
 
 class JoinManager:
-    def __init__(self, game):
+    def __init__(self, slack_client, channel, players):
         self.last_message = None
-        self.chat = None
-        self.game = game
-        self.chat = Chat(self.game.slack_client, self.game.channel)
+        self.slack_client = slack_client
+        self.channel = channel
+        self.players = players
+        self.chat = Chat(slack_client, channel)
+        print str(channel)
 
     def process_message(self, data):
         if 'text' in data and data['text'].lower() == 'yes':
-            player = Player(data['user'], self.game.slack_client)
-            if player not in self.game.players:
-                self.game.players.append(player)
+            player = Player(data['user'], self.slack_client)
+            if player not in self.players:
+                self.players.append(player)
                 self.chat.message(join_message.format(data['user']))
 
     def tick(self, timer):
