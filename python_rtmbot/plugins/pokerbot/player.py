@@ -51,10 +51,13 @@ class Player:
         self.chat.message('Your hand: {}'.format(self.card_str()))
 
     def __hash__(self):
-        return self.slack_id.__hash__()
+        return hash(self.slack_id)
 
     def __eq__(self, other):
-        return other is not None and self.__hash__() == other.__hash__()
+        print repr(other)
+        if other is None:
+            return False
+        return hash(self) == hash(other)
 
     def __str__(self):
         return self.get_username()
