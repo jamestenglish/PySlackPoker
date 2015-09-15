@@ -34,6 +34,9 @@ class Player:
             if im['user'] == slack_id:
                 return im['id']
 
+        print str(ims)
+        raise "IM Channel not found!"
+
     def get_username(self):
         user_api = json.loads(self.slack_client.api_call('users.info', user=self.slack_id))['user']
         return user_api['name']

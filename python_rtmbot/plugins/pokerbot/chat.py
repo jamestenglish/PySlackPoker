@@ -25,9 +25,9 @@ class Chat:
             return result
 
         result = json.loads(result)
-        print '------Result:'
+        print '=======Result ==== {}:'.format(text)
         print str(result)
         print str(result.keys())
-        print '----end'
+        print '======= end ======='
 
         return result
