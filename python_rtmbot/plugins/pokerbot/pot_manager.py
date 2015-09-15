@@ -57,6 +57,12 @@ class PotManager:
             if player in pot.players:
                 return pot
 
+        print "Pot not found for player: {}".format(player)
+        for pot in reversed(self.pots):
+            print "  {} pot players: {}".format(pot.name, pot.players)
+            
+        raise "Pot not found"
+
     def fold(self, player):
         player.state = Player.FOLD_STATE
         player.action = Player.FOLD_STATE
