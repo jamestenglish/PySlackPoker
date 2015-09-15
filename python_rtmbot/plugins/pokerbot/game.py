@@ -196,7 +196,7 @@ class Game:
         # burn card
         self.deck.draw(1)
 
-        self.board.extend(self.deck.draw(1))
+        self.board.append(self.deck.draw(1))
         self.chat.message("*Dealing the turn:*\n{}".format(Game.board_to_string(self.board)))
         turn_callback = partial(self.set_state, RIVER_STATE)
         fold_win_callback = partial(self.set_state, FOLD_WIN_STATE)
@@ -207,7 +207,7 @@ class Game:
         # burn card
         self.deck.draw(1)
 
-        self.board.extend(self.deck.draw(1))
+        self.board.append(self.deck.draw(1))
         self.chat.message("*Dealing the river:*\n{}".format(Game.board_to_string(self.board)))
         self.set_state(SHOW_HANDS_STATE)
 

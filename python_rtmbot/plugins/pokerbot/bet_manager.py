@@ -32,7 +32,7 @@ class BetManager:
         self.timer = WAIT
         self.last_message = None
         self.stop_player = self.get_player(self.dealer_id)
-        self.allow_stop_bet = self.stop_player == self.pot_manager.small_blind
+        self.allow_stop_bet = True
 
     def get_player(self, player_id):
         return self.game.players[player_id % len(self.game.players)]
@@ -46,6 +46,8 @@ class BetManager:
             return
 
     def next_player(self):
+        if self.player == self.stop_player:
+            self.allow_stop_bet = False
         self.player_id += 1
         self.last_message = None
         self.timer = WAIT
@@ -62,10 +64,9 @@ class BetManager:
 
         if self.player == self.stop_player:
             if not self.allow_stop_bet:
+                print "=========== FINISH BETTING"
                 self.finish_betting()
                 return
-            else:
-                self.allow_stop_bet = False
 
         if self.pot_manager.current_bet == self.player.bet:
             self.bet_type = CHECK_MESSAGE
@@ -113,12 +114,10 @@ class BetManager:
             if data['text'].lower() == 'a':
                 return self.process_all_in()
 
-
         if self.bet_type == CHECK_MESSAGE:
             if data['text'].lower() == 'c':
                 self.pot_manager.check(self.player)
                 return self.next_player()
-
 
             if data['text'].lower().startswith('b'):
                 bet_amount = data['text'].lower().replace('b', '')
@@ -130,6 +129,8 @@ class BetManager:
 
                 if bet_amount > self.player.money:
                     return self.player.chat.message(NOT_ENOUGH_MONEY)
+
+                self.stop_player = self.player
 
                 if bet_amount == self.player.money:
                     return self.process_all_in()
@@ -164,6 +165,8 @@ class BetManager:
 
                 if total_amount > self.player.money:
                     return self.player.chat.message(NOT_ENOUGH_MONEY)
+
+                self.stop_player = self.player
 
                 if total_amount == self.player.money:
                     return self.process_all_in()
