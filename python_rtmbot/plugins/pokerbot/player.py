@@ -1,5 +1,5 @@
 import json
-from deuces.deuces import Card
+from python_rtmbot.deuces.deuces import Card
 from chat import Chat
 
 
