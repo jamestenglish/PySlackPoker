@@ -39,13 +39,13 @@ class Player:
         return user_api['name']
 
     def card_str(self):
-        return '[{}, {}]'.format(Card.int_to_pretty_str(self.cards[0]), Card.int_to_pretty_str(self.cards[1]))
+        return '{}, {}'.format(Card.int_to_pretty_str(self.cards[0]), Card.int_to_pretty_str(self.cards[1]))
 
     def deal(self, cards):
         self.bet = 0
         self.cards = cards
         self.state = Player.IN_STATE
-        self.chat.message(self.card_str())
+        self.chat.message('Your hand: {}'.format(self.card_str()))
 
     def __hash__(self):
         return self.slack_id.__hash__()

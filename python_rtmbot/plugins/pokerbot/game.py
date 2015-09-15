@@ -59,9 +59,10 @@ class Game:
         self.players = []
         self.deck = Deck()
         self.current_player = 0
+        self.chat = Chat(self.slack_client, channel)
         self.pot_manager = PotManager(self.chat)
         self.join_manager = JoinManager(self.slack_client, channel, self.players)
-        self.chat = Chat(self.slack_client, channel)
+
         self.bet_manager = BetManager(self, self.pot_manager)
         self.board = []
         self.last_message = None
