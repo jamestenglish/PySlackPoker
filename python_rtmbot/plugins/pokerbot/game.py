@@ -255,6 +255,7 @@ class Game:
 
     def pause_between_game_state(self):
         self.last_message = self.chat.message(PAUSE_MESSAGE.format(self.timer), self.last_message)
+        self.timer = NEW_GAME_WAIT
         self.count_down(DEAL_STATE)
 
     def tick(self):

@@ -10,10 +10,7 @@ class JoinManager:
         self.last_message = None
         self.chat = None
         self.game = game
-
-    def start(self):
         self.chat = Chat(self.game.slack_client, self.game.channel)
-
 
     def process_message(self, data):
         if 'text' in data and data['text'].lower() == 'yes':
