@@ -65,6 +65,9 @@ class BetManager:
             self.next_player()
             return
 
+        if self.timer < 0:
+            self.process_fold()
+
         if self.player == self.stop_player:
             if not self.allow_stop_bet:
                 print "=========== FINISH BETTING"
@@ -74,7 +77,7 @@ class BetManager:
         if self.pot_manager.current_bet == self.player.bet:
             self.bet_type = CHECK_MESSAGE
             self.last_message = self.player.chat.message(CHECK_MESSAGE.format(self.timer), self.last_message)
-            return
+
 
         if self.pot_manager.current_bet > self.player.bet:
             difference = self.pot_manager.current_bet - self.player.bet
@@ -84,7 +87,8 @@ class BetManager:
             else:
                 self.bet_type = CALL_MESSAGE
                 self.last_message = self.player.chat.message(CALL_MESSAGE.format(self.timer), self.last_message)
-            return
+
+        self.timer -= 1
 
     @staticmethod
     def is_num(number_string):
@@ -99,6 +103,12 @@ class BetManager:
         self.pot_manager.all_in(self.player)
         self.next_player()
 
+    def process_fold(self):
+        self.pot_manager.fold(self.player)
+        if self.pot_manager.is_all_folded():
+            return self.fold_callback()
+        return self.next_player()
+
     def process(self, data):
         if self.player != self.players[self.player_id % len(self.players)]:
             return
@@ -107,11 +117,7 @@ class BetManager:
             return
 
         if data['text'].lower() == 'f':
-            self.pot_manager.fold(self.player)
-            if self.pot_manager.is_all_folded():
-                return self.fold_callback()
-
-            return self.next_player()
+            return self.process_fold()
 
         if self.bet_type == ALL_IN_MESSAGE:
             if data['text'].lower() == 'a':
