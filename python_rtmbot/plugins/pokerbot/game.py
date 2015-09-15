@@ -52,6 +52,7 @@ class Game:
         self.board = []
         self.evaluator = Evaluator()
         self.last_message = None
+        self.channel = None
 
     def start(self, channel):
         self.state = START_STATE
@@ -64,6 +65,7 @@ class Game:
         self.chat = Chat(self.slack_client, channel)
         self.bet_manager = BetManager(self, self.pot_manager)
         self.board = []
+        self.channel = channel
         self.last_message = None
 
     def process(self, data):
