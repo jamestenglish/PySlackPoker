@@ -50,6 +50,10 @@ class BetManager:
         self.last_message = None
         self.timer = WAIT
 
+    def finish_betting(self):
+        self.pot_manager.create_side_pots()
+        self.done_callback()
+
     def tick(self):
         self.player = self.get_player(self.player_id)
         if self.player.state != Player.IN_STATE:
@@ -58,7 +62,7 @@ class BetManager:
 
         if self.player == self.stop_player:
             if not self.allow_stop_bet:
-                self.done_callback()
+                self.finish_betting()
                 return
             else:
                 self.allow_stop_bet = False
@@ -163,7 +167,6 @@ class BetManager:
 
                 if total_amount == self.player.money:
                     return self.process_all_in()
-
 
                 self.pot_manager.raise_bid(self.player, raise_amount)
                 return self.next_player()

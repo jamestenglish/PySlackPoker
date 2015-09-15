@@ -1,5 +1,6 @@
 class Pot:
-    def __init__(self, name, player, small_blind):
+    def __init__(self, name, player, amount, locked=False):
         self.name = name
         self.players = [player]
-        self.amount = small_blind
+        self.amount = amount
+        self.locked = locked
