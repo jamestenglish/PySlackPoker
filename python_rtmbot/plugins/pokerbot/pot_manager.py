@@ -50,7 +50,7 @@ class PotManager:
     def add_other_players(self, players):
         for player in players:
             if player not in self.pots[0].players:
-                self.pots[0].players.append(players)
+                self.pots[0].players.append(player)
 
     @staticmethod
     def place_bet(amount, player, pot):
