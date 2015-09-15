@@ -52,6 +52,7 @@ class Game:
         self.board = []
         self.evaluator = Evaluator()
         self.last_message = None
+        self.board_message = None
 
     def start(self, channel):
         self.state = START_STATE
@@ -63,9 +64,10 @@ class Game:
         self.pot_manager = PotManager(self.chat)
         self.join_manager = JoinManager(self.slack_client, channel, self.players)
 
-        self.bet_manager = BetManager(self, self.pot_manager)
+        self.bet_manager = BetManager(self.pot_manager, self.players)
         self.board = []
         self.last_message = None
+        self.board_message = None
 
     def process(self, data):
         if 'text' in data:
@@ -107,6 +109,7 @@ class Game:
         self.state = state
         self.timer = WAIT
         self.last_message = None
+        self.board_message = None
 
     def enough_players(self):
         if len(self.players) < 2:
@@ -147,6 +150,8 @@ class Game:
         if not self.post_blind(self.pot_manager.post_big_blind):
             return
 
+        self.pot_manager.add_other_players(self.players)
+
         self.dealer_id = self.current_player
 
         self.display_board()
@@ -170,8 +175,9 @@ class Game:
                                                               player.bet)
         board_str += '```\n'
         board_str += self.pot_manager.get_pot_string()
+        board_str += "\n{}".format(Game.board_to_string(self.board))
 
-        self.chat.message(board_str)
+        self.board_message = self.chat.message(board_str, self.board_message)
 
     @staticmethod
     def board_to_string(board):
@@ -189,7 +195,7 @@ class Game:
         self.chat.message("*Dealing the flop:*\n{}".format(Game.board_to_string(self.board)))
         turn_callback = partial(self.set_state, TURN_STATE)
         fold_win_callback = partial(self.set_state, FOLD_WIN_STATE)
-        self.bet_manager.request_bets(0, turn_callback, fold_win_callback)
+        self.bet_manager.request_bets(0, turn_callback, fold_win_callback, self.display_board)
         self.set_state(BET_STATE)
 
     def turn_state(self):

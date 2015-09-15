@@ -11,8 +11,8 @@ NOT_ENOUGH_MONEY = "You do not have enough money to do that."
 
 
 class BetManager:
-    def __init__(self, game, pot_manager):
-        self.game = game
+    def __init__(self, pot_manager, players):
+        self.players = players
         self.player_id = None
         self.dealer_id = None
         self.done_callback = None
@@ -24,8 +24,9 @@ class BetManager:
         self.bet_type = None
         self.allow_stop_bet = False
         self.fold_callback = None
+        self.display_board_callback = None
 
-    def request_bets(self, player_id, done_callback, fold_callback):
+    def request_bets(self, player_id, done_callback, fold_callback, display_board_callback):
         self.player_id = self.dealer_id = player_id
         self.done_callback = done_callback
         self.fold_callback = fold_callback
@@ -33,9 +34,10 @@ class BetManager:
         self.last_message = None
         self.stop_player = self.get_player(self.dealer_id)
         self.allow_stop_bet = True
+        self.display_board_callback = display_board_callback
 
     def get_player(self, player_id):
-        return self.game.players[player_id % len(self.game.players)]
+        return self.players[player_id % len(self.players)]
 
     def count_down(self, player):
         self.timer -= 1
@@ -46,6 +48,7 @@ class BetManager:
             return
 
     def next_player(self):
+        self.display_board_callback()
         if self.player == self.stop_player:
             self.allow_stop_bet = False
         self.player_id += 1
@@ -97,7 +100,7 @@ class BetManager:
         self.next_player()
 
     def process(self, data):
-        if self.player != self.game.players[self.player_id % len(self.game.players)]:
+        if self.player != self.players[self.player_id % len(self.players)]:
             return
 
         if self.player.state != Player.IN_STATE:
