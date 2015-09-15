@@ -1,4 +1,4 @@
-from game import WAIT
+from settings import WAIT
 from player import Player
 
 CALL_MESSAGE = "It's your turn. Respond with\n*(C)all    (R)aise    (F)old*\nin the next {} seconds."

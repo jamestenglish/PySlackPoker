@@ -1,0 +1,2 @@
+WAIT = 30
+NEW_GAME_WAIT = 10

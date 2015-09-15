@@ -11,9 +11,9 @@ from join_manager import JoinManager
 from chat import Chat
 from bet_manager import BetManager
 from player import Player
+from settings import WAIT, NEW_GAME_WAIT
 
-WAIT = 30
-NEW_GAME_WAIT = 10
+
 bot_name = '<@U0A1420MD>'
 
 DEAD_STATE = 'DEAD'

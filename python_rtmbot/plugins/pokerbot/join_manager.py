@@ -1,6 +1,5 @@
 from player import Player
 from chat import Chat
-from game import WAIT
 
 start_message = "Who wants to play? Respond with 'yes' in this channel in the next {} seconds. "
 join_message = "<@{}> has joined the game."
