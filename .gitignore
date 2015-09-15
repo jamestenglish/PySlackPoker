@@ -62,3 +62,6 @@ target/
 .idea/
 python-rtmbot/plugins/pokerbot/rtmbot.conf
 python-rtmbot/rtmbot.conf
+
+python_rtmbot/plugins/pokerbot/rtmbot.conf
+python_rtmbot/rtmbot.conf
