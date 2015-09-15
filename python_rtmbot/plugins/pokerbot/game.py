@@ -108,7 +108,6 @@ class Game:
         self.state = state
         self.timer = WAIT
         self.last_message = None
-        self.chat.reset()
 
     def enough_players(self):
         if len(self.players) < 2:

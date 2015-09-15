@@ -5,10 +5,6 @@ class Chat:
     def __init__(self, slack_client, channel):
         self.slack_client = slack_client
         self.channel = channel
-        self.last_message = None
-
-    def reset(self):
-        self.last_message = None
 
     def message(self, text, last_message=None):
 
@@ -17,7 +13,7 @@ class Chat:
             result = self.slack_client.api_call('chat.update',
                                                 text=text,
                                                 channel=self.channel,
-                                                ts=self.last_message['ts'])
+                                                ts=last_message['ts'])
         else:
             result = self.slack_client.api_call('chat.postMessage',
                                                 text=text,
