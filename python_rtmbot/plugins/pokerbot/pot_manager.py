@@ -9,8 +9,8 @@ CALL_NOTIFY_MESSAGE = "{} calls."
 
 
 class PotManager:
-    def __init__(self, game):
-        self.game = game
+    def __init__(self, chat):
+        self.chat = chat
         self.pots = []
         self.current_bet = 0
         self.big_blind = None
@@ -26,7 +26,7 @@ class PotManager:
         player.action = "SMALL BLIND"
 
         self.pots.append(pot)
-        self.game.message('<@{}> posts small blind $1'.format(player.slack_id))
+        self.chat.message('<@{}> posts small blind $1'.format(player.slack_id))
         self.current_bet = 1
         self.big_blind = None
         self.small_blind = player
@@ -37,7 +37,7 @@ class PotManager:
         if player.money < 2:
             return False
 
-        self.game.message('<@{}> posts big blind $2'.format(player.slack_id))
+        self.chat.message('<@{}> posts big blind $2'.format(player.slack_id))
         self.pots[0].players.append(player)
         PotManager.place_bet(2, player, self.pots[0])
         player.bet = 2
@@ -63,12 +63,12 @@ class PotManager:
         for pot in self.pots:
             pot.players.remove(player)
 
-        self.game.chat.message(FOLD_NOTIFY_MESSAGE.format(player))
+        self.chat.message(FOLD_NOTIFY_MESSAGE.format(player))
 
     def all_in(self, player):
         player.state = Player.ALL_IN_STATE
         player.action = Player.ALL_IN_STATE
-        self.game.chat.message(ALL_IN_NOTIFY_MESSAGE.format(player))
+        self.chat.message(ALL_IN_NOTIFY_MESSAGE.format(player))
         players_pot = self.get_player_pot(player)
         PotManager.place_bet(player.money, player, players_pot)
 
@@ -76,7 +76,7 @@ class PotManager:
         player.action = Player.CALL_ACTION
         difference = self.current_bet - player.bet
         players_pot = self.get_player_pot(player)
-        self.game.chat.message(CALL_NOTIFY_MESSAGE.format(player))
+        self.chat.message(CALL_NOTIFY_MESSAGE.format(player))
         PotManager.place_bet(difference, player, players_pot)
 
     def raise_bid(self, player, amount):
@@ -91,13 +91,13 @@ class PotManager:
 
     def check(self, player):
         player.action = Player.CHECK_ACTION
-        self.game.chat.message(CHECK_NOTIFY_MESSAGE.format(player))
+        self.chat.message(CHECK_NOTIFY_MESSAGE.format(player))
 
     def bet(self, player, amount):
         player.action = "{} ${}".format(Player.BET_ACTION, amount)
         self.current_bet += amount
         PotManager.place_bet(amount, player, self.get_player_pot(player))
-        self.game.chat.message(BET_NOTIFY_MESSAGE.format(player, amount))
+        self.chat.message(BET_NOTIFY_MESSAGE.format(player, amount))
 
     def create_side_pots(self):
         reprocess_pots = True
@@ -151,4 +151,4 @@ class PotManager:
 
     def display_pot(self):
         for pot in self.pots:
-            self.game.message('{}: ${}'.format(pot.name, pot.amount))
+            self.chat.message('{}: ${}'.format(pot.name, pot.amount))
